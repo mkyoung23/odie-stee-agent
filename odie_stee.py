@@ -13,9 +13,9 @@ TASK_FILE = "task.txt"
 GITHUB_URL = "https://github.com/"
 CODEX_URL = "https://chat.openai.com/"
 REPO_NAME = "odie-stee-agent"
-COPY_SCROLLS = 12
 
-# <<-- USER: Save a screenshot of ChatGPT's "Copy code" button as copy_code_button.png in this folder! -->
+# == ChatGPT Copy Button Screenshot (crop tightly and name as below)
+COPY_BUTTON_IMAGE = "copy_code_button.png"
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -63,23 +63,6 @@ def ocr_screen(delay=0):
     results = reader.readtext(screenshot_np)
     return results
 
-def move_click_text(text, max_scrolls=10):
-    for i in range(max_scrolls):
-        results = ocr_screen()
-        for bbox, found_text, conf in results:
-            if text.lower() in found_text.lower():
-                x1, y1 = bbox[0]
-                x2, y2 = bbox[2]
-                center = ((x1 + x2)//2, (y1 + y2)//2)
-                pyautogui.moveTo(center[0], center[1], duration=0.3)
-                pyautogui.click()
-                print(f"Clicked on '{text}' at {center}")
-                return True
-        pyautogui.scroll(-400)
-        time.sleep(0.4)
-    print(f"Text '{text}' not found on screen after scrolling.")
-    return False
-
 def open_app_by_search(app_name, fallback_coords=(30, 1060)):
     print(f"Trying to open {app_name} using Start menu...")
     found_start = False
@@ -107,18 +90,30 @@ def open_app_by_search(app_name, fallback_coords=(30, 1060)):
     print(f"Typed {app_name} and hit Enter.")
     time.sleep(5)
 
-def select_and_copy_large_area(top_left, bottom_right):
-    pyautogui.moveTo(top_left[0], top_left[1], duration=0.2)
-    pyautogui.mouseDown()
-    pyautogui.moveTo(bottom_right[0], bottom_right[1], duration=0.5)
-    pyautogui.mouseUp()
-    time.sleep(0.2)
-    pyautogui.hotkey('ctrl', 'c')
-    text = pyperclip.paste()
-    print(f"Copied large block (first 100 chars): {text[:100]}")
-    return text
+def open_browser(url, wait=6):
+    print(f"Opening browser to {url}")
+    if os.name == 'nt':
+        os.system(f'start {url}')
+    elif os.name == 'posix':
+        subprocess.call(['open', url])
+    else:
+        subprocess.call(['xdg-open', url])
+    time.sleep(wait)
 
-def copy_by_image(image_path, max_scrolls=10, wait_for_seconds=15):
+def clean_code_block(code):
+    code = re.sub(r"^```(python)?", "", code, flags=re.MULTILINE)
+    code = re.sub(r"```$", "", code, flags=re.MULTILINE)
+    cleaned_lines = []
+    for line in code.splitlines():
+        line_strip = line.strip()
+        if line_strip.startswith("python ") or line_strip.startswith("$"):
+            continue
+        if re.match(r'^[\w\-_.]+\.(py|sh|bat|exe)', line_strip):
+            continue
+        cleaned_lines.append(line)
+    return "\n".join(cleaned_lines).strip()
+
+def copy_by_image(image_path, wait_for_seconds=16, max_scrolls=10):
     print(f"Waiting {wait_for_seconds} seconds for ChatGPT to finish writing code...")
     time.sleep(wait_for_seconds)
     print("Looking for 'Copy code' button...")
@@ -138,44 +133,17 @@ def copy_by_image(image_path, max_scrolls=10, wait_for_seconds=15):
     input()
     return pyperclip.paste()
 
-def universal_copy(target_text=None, image_path=None, select_area=None, fallback_manual=True):
-    copied = None
-    if image_path:
-        copied = copy_by_image(image_path)
-    if not copied and target_text:
-        if move_click_text(target_text):
-            time.sleep(0.2)
-            pyautogui.hotkey('ctrl', 'c')
-            copied = pyperclip.paste()
-    if not copied and select_area:
-        copied = select_and_copy_large_area(*select_area)
-    if not copied and fallback_manual:
-        print("Please manually select/copy the section now, then press Enter.")
-        input()
-        copied = pyperclip.paste()
-    return copied
-
 def save_anywhere(data, filepath):
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(data)
     print(f"Saved data to {filepath}")
-
-def open_browser(url, wait=6):
-    print(f"Opening browser to {url}")
-    if os.name == 'nt':
-        os.system(f'start {url}')
-    elif os.name == 'posix':
-        subprocess.call(['open', url])
-    else:
-        subprocess.call(['xdg-open', url])
-    time.sleep(wait)
 
 def run_file(filename):
     print(f"Running {filename} ...")
     result = subprocess.run(["python", filename], capture_output=True, text=True)
     print("--- STDOUT ---\n", result.stdout)
     print("--- STDERR ---\n", result.stderr)
-    return result.returncode == 0, result.stderr
+    return result.returncode == 0, result.stderr, result.stdout
 
 def get_task():
     if not os.path.exists(TASK_FILE):
@@ -184,18 +152,18 @@ def get_task():
     with open(TASK_FILE, "r", encoding="utf-8") as f:
         return f.read().strip()
 
-def clean_code_block(code):
-    code = re.sub(r"^```(python)?", "", code, flags=re.MULTILINE)
-    code = re.sub(r"```$", "", code, flags=re.MULTILINE)
-    cleaned_lines = []
-    for line in code.splitlines():
-        line_strip = line.strip()
-        if line_strip.startswith("python ") or line_strip.startswith("$"):
-            continue
-        if re.match(r'^[\w\-_.]+\.(py|sh|bat|exe)', line_strip):
-            continue
-        cleaned_lines.append(line)
-    return "\n".join(cleaned_lines).strip()
+def self_fix_code(original_code, error_msg, task, generated="odie_generated.py"):
+    # 1. Open browser and ask for a fix, paste full code and error
+    open_browser(CODEX_URL, wait=8)
+    fix_prompt = f"This code failed with the following error. Please fix it for this task, and return only the corrected, complete script (no explanations):\n\nTASK:\n{task}\n\nCODE:\n{original_code}\n\nERROR:\n{error_msg}\n"
+    pyautogui.typewrite(fix_prompt, interval=0.02)
+    pyautogui.press('enter')
+    print("Prompted ChatGPT/Codex for code fix, now copying new code block...")
+    fixed_code = copy_by_image(COPY_BUTTON_IMAGE, wait_for_seconds=18)
+    fixed_code = clean_code_block(fixed_code)
+    save_anywhere(fixed_code, generated)
+    print("Re-running the fixed code...")
+    return run_file(generated)
 
 def self_upgrade_cycle(task, generated="odie_generated.py"):
     plan_prompt = f"You are an agent controlling Windows via Python/pyautogui/OCR. User task: {task}\nBreak it down into step-by-step numbered actions. Do not output any explanations."
@@ -228,22 +196,23 @@ def self_upgrade_cycle(task, generated="odie_generated.py"):
     print("Prompt submitted to Codex/ChatGPT. Wait for code to finish generating...")
     print("Odie will now look for 'Copy code' button and click it to copy the entire code block.")
 
-    code = copy_by_image("copy_code_button.png", wait_for_seconds=16)
+    code = copy_by_image(COPY_BUTTON_IMAGE, wait_for_seconds=18)
     code = clean_code_block(code)
     save_anywhere(code, generated)
-    worked, errors = run_file(generated)
-    if not worked:
-        print("Code failed. Copying errors and asking Codex/ChatGPT for a fix.")
-        error_prompt = f"This code failed with the following errors. Please fix and return the corrected full script (code only, no explanation):\n\n{code}\n\nERRORS:\n{errors}"
-        open_browser(CODEX_URL, wait=8)
-        time.sleep(2)
-        pyautogui.typewrite(error_prompt, interval=0.02)
-        pyautogui.press('enter')
-        print("Let Odie auto-copy or manually copy the fixed code, then press ENTER here.")
-        code = copy_by_image("copy_code_button.png", wait_for_seconds=16)
-        code = clean_code_block(code)
-        save_anywhere(code, generated)
-        run_file(generated)
+    worked, errors, std_out = run_file(generated)
+    loop_count = 0
+    # AUTO-RETRY LOOP!
+    while not worked and loop_count < 5:
+        print(f"Auto-fix attempt #{loop_count+1}")
+        worked, errors, std_out = self_fix_code(code, errors, task, generated)
+        code = open(generated, encoding="utf-8").read()
+        loop_count += 1
+
+    if worked:
+        print("Task completed and code fixed successfully!")
+    else:
+        print("Auto-fix failed after 5 attempts. Manual intervention required.")
+        save_anywhere(errors, "odie_error.log")
 
     push_to_github()
 
