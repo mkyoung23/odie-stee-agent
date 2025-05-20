@@ -1,2 +1,5 @@
-Open Spotify on my desktop and play Kanye West, set system volume to 50%, create a file called hello.txt on the desktop. Check after market news on stocks and tell me if anything significant happened.
-
+Open Spotify on my desktop and play Kanye West.
+Open Notepad and create a file called hello.txt on the desktop with the text "Mission Complete!".
+Open Edge and go to chat.openai.com.
+Search and research after hours stock market and news. 
+Write a quick briefing on what's happening and what i should watch out for in the markets / world news. 
