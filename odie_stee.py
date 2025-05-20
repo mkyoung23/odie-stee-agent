@@ -6,6 +6,7 @@ import easyocr
 import numpy as np
 import subprocess
 import openai
+import re
 from dotenv import load_dotenv
 
 TASK_FILE = "task.txt"
@@ -14,6 +15,8 @@ CODEX_URL = "https://chat.openai.com/"
 REPO_NAME = "odie-stee-agent"
 COPY_SCROLLS = 12
 
+# <<-- USER: Save a screenshot of ChatGPT's "Copy code" button as copy_code_button.png in this folder! -->
+
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
@@ -21,7 +24,7 @@ if not OPENAI_API_KEY:
     exit(1)
 
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
-reader = easyocr.Reader(['en'], gpu=False)  # set gpu=True if you have CUDA
+reader = easyocr.Reader(['en'], gpu=False)
 
 def ensure_gitignore_and_remove_env():
     if not os.path.exists('.gitignore'):
@@ -77,6 +80,33 @@ def move_click_text(text, max_scrolls=10):
     print(f"Text '{text}' not found on screen after scrolling.")
     return False
 
+def open_app_by_search(app_name, fallback_coords=(30, 1060)):
+    print(f"Trying to open {app_name} using Start menu...")
+    found_start = False
+    results = ocr_screen()
+    for bbox, text, conf in results:
+        if "start" in text.lower():
+            x1, y1 = bbox[0]
+            x2, y2 = bbox[2]
+            center = ((x1 + x2)//2, (y1 + y2)//2)
+            pyautogui.moveTo(center[0], center[1], duration=0.2)
+            pyautogui.click()
+            found_start = True
+            print("Clicked Start by OCR.")
+            break
+    if not found_start:
+        pyautogui.moveTo(*fallback_coords, duration=0.2)
+        pyautogui.click()
+        print("Clicked Start by fallback position.")
+    time.sleep(1)
+    for _ in range(3):
+        pyautogui.press('backspace')
+    pyautogui.write(app_name, interval=0.1)
+    time.sleep(1)
+    pyautogui.press('enter')
+    print(f"Typed {app_name} and hit Enter.")
+    time.sleep(5)
+
 def select_and_copy_large_area(top_left, bottom_right):
     pyautogui.moveTo(top_left[0], top_left[1], duration=0.2)
     pyautogui.mouseDown()
@@ -88,21 +118,25 @@ def select_and_copy_large_area(top_left, bottom_right):
     print(f"Copied large block (first 100 chars): {text[:100]}")
     return text
 
-def copy_by_image(image_path, max_scrolls=10):
-    for _ in range(max_scrolls):
-        btn = pyautogui.locateCenterOnScreen(image_path, confidence=0.85)
-        if btn:
-            pyautogui.moveTo(btn)
+def copy_by_image(image_path, max_scrolls=10, wait_for_seconds=15):
+    print(f"Waiting {wait_for_seconds} seconds for ChatGPT to finish writing code...")
+    time.sleep(wait_for_seconds)
+    print("Looking for 'Copy code' button...")
+    for attempt in range(max_scrolls):
+        location = pyautogui.locateCenterOnScreen(image_path, confidence=0.85)
+        if location:
+            pyautogui.moveTo(location[0], location[1], duration=0.2)
             pyautogui.click()
-            time.sleep(0.2)
-            pyautogui.hotkey('ctrl', 'c')
-            copied = pyperclip.paste()
-            print(f"Copied by image! (first 100 chars): {copied[:100]}")
-            return copied
-        pyautogui.scroll(-500)
+            print(f"Clicked 'Copy code' at {location}")
+            time.sleep(0.3)
+            code = pyperclip.paste()
+            print(f"Copied full code block (first 100 chars): {code[:100]}")
+            return code
+        pyautogui.scroll(-200)
         time.sleep(0.5)
-    print(f"Could not find button/image '{image_path}'.")
-    return None
+    print("Failed to find 'Copy code' button. Please copy manually and press ENTER.")
+    input()
+    return pyperclip.paste()
 
 def universal_copy(target_text=None, image_path=None, select_area=None, fallback_manual=True):
     copied = None
@@ -150,55 +184,20 @@ def get_task():
     with open(TASK_FILE, "r", encoding="utf-8") as f:
         return f.read().strip()
 
-### 🟢 THE UNIVERSAL "OPEN APP BY NAME" FEATURE:
-
-def open_app_by_search(app_name, start_button_text="Start", max_tries=10):
-    """
-    Clicks the Start menu (using OCR or fallback), types the app name, and clicks the app when found.
-    """
-    print(f"Trying to open {app_name} using Start menu...")
-    found_start = False
-    for _ in range(2):
-        results = ocr_screen()
-        for bbox, text, conf in results:
-            if start_button_text.lower() in text.lower():
-                x1, y1 = bbox[0]
-                x2, y2 = bbox[2]
-                center = ((x1 + x2)//2, (y1 + y2)//2)
-                pyautogui.moveTo(center[0], center[1], duration=0.3)
-                pyautogui.click()
-                found_start = True
-                print(f"Clicked Start at {center}")
-                time.sleep(1)
-                break
-        if found_start:
-            break
-    if not found_start:
-        pyautogui.moveTo(30, 1060, duration=0.2)  # Typical Windows bottom left, fallback
-        pyautogui.click()
-        print("Clicked fallback Start position")
-        time.sleep(1)
-    pyautogui.write(app_name, interval=0.07)
-    time.sleep(2)
-    for attempt in range(max_tries):
-        results = ocr_screen()
-        for bbox, text, conf in results:
-            if app_name.lower() in text.lower():
-                x1, y1 = bbox[0]
-                x2, y2 = bbox[2]
-                center = ((x1 + x2)//2, (y1 + y2)//2)
-                pyautogui.moveTo(center[0], center[1], duration=0.3)
-                pyautogui.doubleClick()
-                print(f"Opened {app_name} at {center}")
-                time.sleep(5)
-                return True
-        print(f"Didn't see {app_name} in results, trying again...")
-        time.sleep(1)
-    print(f"Failed to open {app_name} after {max_tries} tries.")
-    return False
+def clean_code_block(code):
+    code = re.sub(r"^```(python)?", "", code, flags=re.MULTILINE)
+    code = re.sub(r"```$", "", code, flags=re.MULTILINE)
+    cleaned_lines = []
+    for line in code.splitlines():
+        line_strip = line.strip()
+        if line_strip.startswith("python ") or line_strip.startswith("$"):
+            continue
+        if re.match(r'^[\w\-_.]+\.(py|sh|bat|exe)', line_strip):
+            continue
+        cleaned_lines.append(line)
+    return "\n".join(cleaned_lines).strip()
 
 def self_upgrade_cycle(task, generated="odie_generated.py"):
-    # Plan
     plan_prompt = f"You are an agent controlling Windows via Python/pyautogui/OCR. User task: {task}\nBreak it down into step-by-step numbered actions. Do not output any explanations."
     response = client.chat.completions.create(
         model="gpt-4o",
@@ -210,17 +209,15 @@ def self_upgrade_cycle(task, generated="odie_generated.py"):
     steps = response.choices[0].message.content
     print("---- PLANNED STEPS ----\n", steps)
 
-    # Detect app name to open, if present, and open it visually
+    # Detect any "open" app command in task and open it visually
     task_lower = task.lower()
     open_targets = ["open ", "launch ", "start "]
-    app_name = None
     for ot in open_targets:
-        if ot in task_lower:
-            app_name = task_lower.split(ot)[-1].split(" ")[0].capitalize()
+        idx = task_lower.find(ot)
+        if idx != -1:
+            app = task_lower[idx + len(ot):].split()[0].capitalize()
+            open_app_by_search(app)
             break
-    if app_name:
-        print(f"Odie detected app to open: {app_name}")
-        open_app_by_search(app_name)
 
     # Ask Codex/ChatGPT for code to do the task
     code_prompt = f"Write a pure Python script to do this task on Windows. Use pyautogui, OCR, file I/O, and os as needed. No explanation, only code:\n{task}"
@@ -228,11 +225,11 @@ def self_upgrade_cycle(task, generated="odie_generated.py"):
     time.sleep(2)
     pyautogui.typewrite(code_prompt, interval=0.02)
     pyautogui.press('enter')
-    print("Prompt submitted to Codex/ChatGPT. Let it generate code, then let Odie auto-copy or manually copy code as needed.")
-    print("If automation doesn't copy the code, select and copy code manually, then press ENTER here.")
+    print("Prompt submitted to Codex/ChatGPT. Wait for code to finish generating...")
+    print("Odie will now look for 'Copy code' button and click it to copy the entire code block.")
 
-    time.sleep(12)
-    code = universal_copy(target_text="import ", fallback_manual=True)
+    code = copy_by_image("copy_code_button.png", wait_for_seconds=16)
+    code = clean_code_block(code)
     save_anywhere(code, generated)
     worked, errors = run_file(generated)
     if not worked:
@@ -243,9 +240,9 @@ def self_upgrade_cycle(task, generated="odie_generated.py"):
         pyautogui.typewrite(error_prompt, interval=0.02)
         pyautogui.press('enter')
         print("Let Odie auto-copy or manually copy the fixed code, then press ENTER here.")
-        time.sleep(12)
-        fixed_code = universal_copy(target_text="import ", fallback_manual=True)
-        save_anywhere(fixed_code, generated)
+        code = copy_by_image("copy_code_button.png", wait_for_seconds=16)
+        code = clean_code_block(code)
+        save_anywhere(code, generated)
         run_file(generated)
 
     push_to_github()
