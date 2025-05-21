@@ -1,100 +1,84 @@
-import pyautogui
-import time
 import os
+import time
+import pyautogui
+import requests
+from dotenv import load_dotenv
 
-# --- Helper variables (update X/Y coords as needed for your setup) ---
-search_bar_x, search_bar_y = 400, 120      # Spotify Search Bar
-song_x, song_y = 400, 300                  # First song result, may need to adjust
-chrome_icon_x, chrome_icon_y = 60, 160     # Edge/Chrome icon if needed
+# --- Load API Key Securely ---
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+NOTES_FILE = "firebase_setup_notes.txt"
+FIREBASE_URL = "https://console.firebase.google.com/project/lifelapse-27e17/overview"
 
-# 1. Open Start Menu, type Spotify, press Enter
-time.sleep(2)
-pyautogui.press('win')
-time.sleep(1)
-pyautogui.typewrite('Spotify', interval=0.1)
-time.sleep(1)
-pyautogui.press('enter')
-time.sleep(6)
+def open_firebase_console():
+    os.system(f'start {FIREBASE_URL}')
+    time.sleep(10)
 
-# 2. Search for "Kanye West Can't Tell Me Nothing" and press Enter
-pyautogui.click(search_bar_x, search_bar_y)
-time.sleep(1)
-pyautogui.typewrite("Kanye West Can't Tell Me Nothing", interval=0.08)
-time.sleep(0.5)
-pyautogui.press('enter')
-time.sleep(3.5)
+def send_to_gemini_chat(message, x=1200, y=900):
+    pyautogui.click(x, y)  # update for Gemini input box
+    time.sleep(0.5)
+    pyautogui.write(message, interval=0.03)
+    pyautogui.press('enter')
 
-# 3. Double-click first result (song title)
-pyautogui.doubleClick(song_x, song_y)
-time.sleep(2)
+def call_gemini_api(prompt):
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+    resp = requests.post(url, json=payload)
+    data = resp.json()
+    return (
+        data.get("candidates", [{}])[0]
+        .get("content", {})
+        .get("parts", [{}])[0]
+        .get("text", "")
+    )
 
-# 4. Open Notepad
-pyautogui.press('win')
-time.sleep(1)
-pyautogui.typewrite('Notepad', interval=0.1)
-time.sleep(1)
-pyautogui.press('enter')
-time.sleep(2)
+def save_notes(notes):
+    with open(NOTES_FILE, "a", encoding="utf-8") as f:
+        f.write(notes + "\n\n")
 
-# 5. Type the message
-msg = "Hello, World! This was written by Odie Stee."
-pyautogui.typewrite(msg, interval=0.08)
-time.sleep(1)
+def backup_to_github():
+    os.system("git add .")
+    os.system('git commit -m "Firebase/FlutterFlow update [auto]"')
+    os.system("git push")
 
-# 6. Save to Desktop as hello.txt using address bar
-pyautogui.hotkey('alt', 'f')
-time.sleep(0.5)
-pyautogui.press('a')  # Save As
-time.sleep(2)
-pyautogui.hotkey('alt', 'd')  # Focus address bar
-time.sleep(0.5)
-pyautogui.typewrite('Desktop', interval=0.05)
-pyautogui.press('enter')
-time.sleep(1)
-pyautogui.typewrite('hello.txt', interval=0.05)
-pyautogui.press('enter')
-time.sleep(1)
+# --- MAIN FLOW ---
 
-# 7. Open Edge/Chrome
-pyautogui.press('win')
-time.sleep(1)
-pyautogui.typewrite('Edge', interval=0.1)
-time.sleep(1)
-pyautogui.press('enter')
-time.sleep(3.5)
+open_firebase_console()
 
-# 8. Go to google.com
-pyautogui.typewrite('google.com', interval=0.08)
-pyautogui.press('enter')
-time.sleep(3)
+# Step 1: Gemini chat - Database, Auth, Storage, UI
+send_to_gemini_chat(
+    "Gemini, configure Cloud Firestore in us-east4, enable Storage, and set up Auth for Email/Password, Google, and Apple. Collections: Users, Groups, Videos. Use the project blueprint for fields."
+)
 
-# 9. Search in Google
-search_query = ("Best vacation spots or romantic getaways in Charleston SC for a couple age 30, "
-                "traveling for the week of July 11th.")
-time.sleep(2)
-pyautogui.click(500, 350)  # Click Google search box (adjust if needed)
-time.sleep(0.5)
-pyautogui.typewrite(search_query, interval=0.06)
-pyautogui.press('enter')
-time.sleep(5)
+# Step 2: Use Gemini API for secure rules/code generation
+rules_prompt = (
+    "Write secure Firestore rules for a production app. "
+    "Collections: Users (user-only access), Groups (member-only access), Videos (group-access only). "
+    "Enforce auth (Email/Google/Apple). Output only code."
+)
+rules_code = call_gemini_api(rules_prompt)
+save_notes("Firestore Rules:\n" + rules_code)
 
-# 10. Pause for user to review page (OCR required for auto summarization; not reliable for web)
-# To automate, would require OCR or HTML parsing, here we just open results and continue after manual review.
+# (Example) Update Remote Config via Gemini API
+config_prompt = (
+    "Generate Firebase Remote Config JSON for live API key and feature flag rollout."
+)
+config_code = call_gemini_api(config_prompt)
+save_notes("Remote Config Example:\n" + config_code)
 
-# 11. Open another Notepad window
-pyautogui.press('win')
-time.sleep(1)
-pyautogui.typewrite('Notepad', interval=0.1)
-time.sleep(1)
-pyautogui.press('enter')
-time.sleep(1)
+# (Example) AI captions A/B testing snippet for FlutterFlow
+ai_caption_prompt = (
+    "Flutter/Dart: Write a function using Gemini API to auto-caption video uploads. Enable A/B testing using Firebase Remote Config."
+)
+ai_caption_code = call_gemini_api(ai_caption_prompt)
+save_notes("AI Captions with A/B Testing:\n" + ai_caption_code)
 
-# 12. Summarize recommendations (placeholder text, since automation can't read browser content directly)
-summary = """Top vacation ideas in Charleston, SC for a couple, week of July 11th:
-1. Stay at a historic downtown Charleston inn, walk King Street, and dine at local restaurants.
-2. Romantic sunset harbor cruise and Folly Beach day trips.
-3. Explore Magnolia Plantation & Gardens, Boone Hall Plantation, and nearby waterfront parks.
-4. Spa day for couples and private carriage tours of historic neighborhoods.
-5. Visit local art galleries and enjoy rooftop bars with views of the Charleston skyline.
-"""
-pyautogui.typewrite(summary, interval=0.04)
+# Step 3: Backup all changes to GitHub (never commit .env)
+backup_to_github()
+
+# Error handling: If any error, log it, send to Gemini chat & API for fix, then retry step.
+# (Add your error-catch + retry logic as needed)
+
+# --- END ---

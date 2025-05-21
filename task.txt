@@ -1,24 +1,29 @@
-1. Open Spotify using the Start menu.
-2. In Spotify, click the search bar, type: Kanye West Can't Tell Me Nothing, and press Enter.
-3. When the song "Can't Tell Me Nothing" by Kanye West appears in the search results, double-click on the song title to start playing it.
+1. Use Gemini chat in the Firebase Studio browser for all Firebase configuration, setup, and Firestore/Storage/Auth Q&A. Only type in the Gemini chat box, not ChatGPT.
+2. When needing to generate or fix code, Firestore rules, or advanced logic, use the Gemini API (Developer or Vertex) directly for faster, programmatic code generation.
+    - If using the Gemini API, choose the Developer API for no-cost testing, or Vertex AI for enterprise-grade scaling, monitoring, or large file use.
+    - If you need to experiment with prompts or models, use Google AI Studio or Vertex AI Studio for quick code snippets and model tuning.
+    - You can also use Gemini API for A/B testing, updating prompts, or experimental features in-app (e.g., AI captions or content).
+3. When using the Gemini API, handle API keys securely (never commit to GitHub). Use Firebase Remote Config to update API keys or prompts remotely if needed.
+4. Integrate Gemini-generated code or rules directly into your local files, Firebase Console, or FlutterFlow project as needed.
+5. Always back up all new code, schema changes, and rules to your GitHub repo.
+6. If Odie encounters any error, use either Gemini chat or Gemini API to get a fix, then retry the step.
+7. Save all code, rules, and config changes from Gemini chat and Gemini API into firebase_setup_notes.txt or similar for future reference.
 
-4. Open Notepad using the Start menu.
-5. Type this message into Notepad: Hello, World! This was written by Odie Stee.
-6. Save this file to the Desktop as hello.txt:
-    a. Press Alt+F to open the File menu.
-    b. Press A for "Save As".
-    c. In the Save dialog, press Alt+D to focus the address bar, type Desktop, and press Enter.
-    d. In the File name field, type hello.txt (just the filename, not a full path).
-    e. Press Enter or click Save.
+# Project Summary
+- Project ID: lifelapse-27e17
+- Database: Cloud Firestore (us-east4), Storage enabled
+- Auth: Email/Password, Google, Apple (to be enabled)
+- Collections: Users, Groups, Videos (see project blueprint for field definitions)
 
-7. Open Microsoft Edge (or your default browser) using the Start menu.
-8. Go to google.com.
-9. In Google, search: Best vacation spots or romantic getaways in Charleston SC for a couple age 30, traveling for the week of July 11th.
-10. Review the first page of Google results.
-11. Open a new Notepad window.
-12. Summarize the top 3 to 5 recommendations for vacation spots or activities in Charleston, SC for a couple in their 30s for the week of July 11th. Type these summaries into Notepad.
-13. Save this file to the Desktop as charleston_vacation.txt, using the same steps:
-    a. Press Alt+F, then A for Save As.
-    b. Press Alt+D, type Desktop, and press Enter.
-    c. Type charleston_vacation.txt for the filename, then press Enter or click Save.
+# Instructions
+- Use browser automation for all Gemini chat and UI work in Firebase Studio and FlutterFlow.
+- Use Gemini API for programmatic code generation, fixes, or in-app AI features.
+- Only use ChatGPT or Copilot if Gemini cannot resolve the issue or for code cross-checking.
 
+# Security
+- Store Gemini API keys in local .env, never push to GitHub.
+- Update rules/configs securely using Gemini API and Firebase Remote Config for live apps.
+
+# Goal
+- Fully integrate Firebase and FlutterFlow as per project blueprint, using Gemini as the main “brain” for code, config, rules, and app logic.
+- Back up all work to GitHub.
