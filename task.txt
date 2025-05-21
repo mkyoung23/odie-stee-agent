@@ -1,28 +1,48 @@
-1. Open the Firebase Console and ensure the "lifelapse-27e17" project is fully set up with Firestore, Storage, Authentication (Email, Google, Apple), and Remote Config.
-2. Use Gemini chat/API to:
-    - Generate and verify all Firestore and Storage security rules for production.
-    - Generate schema and default documents for Users, Groups, Videos collections.
-    - Generate all needed backend logic and AI features (e.g., Gemini-powered captions, video processing).
-3. Enable Vertex AI and integrate Gemini as the AI backend for text/video/image features, as described in the blueprint.
-4. In FlutterFlow (or your chosen frontend builder):
-    - Ensure all UI screens are built: onboarding, auth, home, video list/player, groups, favorites, capsule seal, profile/settings, notifications.
-    - Integrate Gemini/Vertex AI features (e.g., AI captions) into the video flow, using Remote Config for prompts and model versions.
-5. Use Gemini API to generate and auto-paste production-ready code for:
-    - Flutter/Dart logic (all platforms: iOS, Android, Web)
-    - In-app Remote Config fetch and AI calls
-    - Any missing business logic or UI code
-6. Build the app for iOS and Android:
-    - Run `flutter build apk` and `flutter build ios`
-    - Use Xcode and Android Studio to archive and export release builds.
-7. Distribute:
-    - For iOS: Prepare a TestFlight beta and provide the invite link.
-    - For Android: Upload to Google Play Internal Testing or generate a direct APK link for download.
-    - For Web: Deploy to Firebase Hosting and generate a shareable link.
-8. Test:
-    - Run basic automated and manual tests on all platforms.
-    - Report any issues to Gemini for code fixes, retry the build/test.
-9. Save all generated code, configs, rules, and documentation to "firebase_setup_notes.txt".
-10. Commit and push all changes to GitHub for backup.
-11. If any step fails, use Gemini chat or API to debug, then retry the failed step.
-12. Alert me when the builds are complete and provide links/instructions to download and install on my devices and share with friends.
+# LifeLapse App Full Automation Task
+
+Odie Stee, here is your end-to-end mission. Complete each step and update yourself/code as needed. Only alert me if you are completely finished or truly stuck.
+
+1. Open Firebase Console and ensure the project "lifelapse-27e17" has:
+    - Firestore (database)
+    - Storage (for videos/images)
+    - Authentication (Email, Google, Apple)
+    - Remote Config enabled
+
+2. Use Gemini or ChatGPT API/browser to:
+    - Generate & apply Firestore and Storage security rules for production
+    - Generate and insert schema/default docs for Users, Groups, Videos collections
+    - Generate and implement backend logic for user registration, group management, video upload, AI captions/tags (using Gemini/Vertex AI)
+    - Enable Vertex AI and integrate Gemini for all AI features
+
+3. In FlutterFlow (or Flutter IDE):
+    - Create & connect all UI screens: onboarding, authentication, home, video feed/player, group creation/join, favorites, capsule seal (timer/lock), notifications, profile/settings
+    - Integrate AI video caption/tagging features using Remote Config
+
+4. Generate and insert production-ready Flutter/Dart code for:
+    - Firestore, Storage, Auth, Remote Config integration
+    - Gemini/Vertex AI API calls for video captions/tags
+    - All missing UI/business logic
+
+5. Build the app for all platforms:
+    - Run `flutter build apk` for Android
+    - Run `flutter build ios` for iOS (archive/export for TestFlight)
+    - Run `flutter build web` and deploy to Firebase Hosting
+
+6. Distribute builds:
+    - Android: Upload to Play Console Internal Testing or generate/share APK link
+    - iOS: Upload to App Store Connect/TestFlight and generate invite link
+    - Web: Deploy and share hosting URL
+
+7. Test the app:
+    - Run automated and manual tests for all core flows on all platforms
+    - If anything fails, get code fixes from Gemini/ChatGPT, update code, retry
+
+8. Save all generated code, configs, rules, and documentation to "firebase_setup_notes.txt" on Desktop
+
+9. Commit and push all changes to GitHub for backup
+
+10. Only alert me when everything is done and provide direct download/install/share links for all platforms
+
+# If you get stuck or fail, debug using Gemini/ChatGPT and keep retrying/fixing until the app is fully functional, downloadable, and testable by users.
+
 
