@@ -1,29 +1,12 @@
-1. Use Gemini chat in the Firebase Studio browser for all Firebase configuration, setup, and Firestore/Storage/Auth Q&A. Only type in the Gemini chat box, not ChatGPT.
-2. When needing to generate or fix code, Firestore rules, or advanced logic, use the Gemini API (Developer or Vertex) directly for faster, programmatic code generation.
-    - If using the Gemini API, choose the Developer API for no-cost testing, or Vertex AI for enterprise-grade scaling, monitoring, or large file use.
-    - If you need to experiment with prompts or models, use Google AI Studio or Vertex AI Studio for quick code snippets and model tuning.
-    - You can also use Gemini API for A/B testing, updating prompts, or experimental features in-app (e.g., AI captions or content).
-3. When using the Gemini API, handle API keys securely (never commit to GitHub). Use Firebase Remote Config to update API keys or prompts remotely if needed.
-4. Integrate Gemini-generated code or rules directly into your local files, Firebase Console, or FlutterFlow project as needed.
-5. Always back up all new code, schema changes, and rules to your GitHub repo.
-6. If Odie encounters any error, use either Gemini chat or Gemini API to get a fix, then retry the step.
-7. Save all code, rules, and config changes from Gemini chat and Gemini API into firebase_setup_notes.txt or similar for future reference.
-
-# Project Summary
-- Project ID: lifelapse-27e17
-- Database: Cloud Firestore (us-east4), Storage enabled
-- Auth: Email/Password, Google, Apple (to be enabled)
-- Collections: Users, Groups, Videos (see project blueprint for field definitions)
-
-# Instructions
-- Use browser automation for all Gemini chat and UI work in Firebase Studio and FlutterFlow.
-- Use Gemini API for programmatic code generation, fixes, or in-app AI features.
-- Only use ChatGPT or Copilot if Gemini cannot resolve the issue or for code cross-checking.
-
-# Security
-- Store Gemini API keys in local .env, never push to GitHub.
-- Update rules/configs securely using Gemini API and Firebase Remote Config for live apps.
-
-# Goal
-- Fully integrate Firebase and FlutterFlow as per project blueprint, using Gemini as the main “brain” for code, config, rules, and app logic.
-- Back up all work to GitHub.
+1. Open Google Cloud Console and enable Vertex AI API for lifelapse-27e17.
+2. In Firebase Console, enable Vertex AI under the AI section.
+3. Open Remote Config in Firebase, and add/update these parameters:
+    - gemini_prompt_template: "Tell me about: %INPUT_TEXT%"
+    - gemini_model_version: "gemini-pro"
+4. For Android and iOS, use Gemini API to generate:
+    - Remote Config fetch/activate code
+    - Vertex AI SDK integration code
+    - Example AI call logic
+5. Copy all responses and code into firebase_setup_notes.txt.
+6. Commit and push all updates to GitHub.
+7. On any error, retry the step using Gemini chat or Gemini API.
