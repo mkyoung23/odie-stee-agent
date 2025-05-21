@@ -1,12 +1,28 @@
-1. Open Google Cloud Console and enable Vertex AI API for lifelapse-27e17.
-2. In Firebase Console, enable Vertex AI under the AI section.
-3. Open Remote Config in Firebase, and add/update these parameters:
-    - gemini_prompt_template: "Tell me about: %INPUT_TEXT%"
-    - gemini_model_version: "gemini-pro"
-4. For Android and iOS, use Gemini API to generate:
-    - Remote Config fetch/activate code
-    - Vertex AI SDK integration code
-    - Example AI call logic
-5. Copy all responses and code into firebase_setup_notes.txt.
-6. Commit and push all updates to GitHub.
-7. On any error, retry the step using Gemini chat or Gemini API.
+1. Open the Firebase Console and ensure the "lifelapse-27e17" project is fully set up with Firestore, Storage, Authentication (Email, Google, Apple), and Remote Config.
+2. Use Gemini chat/API to:
+    - Generate and verify all Firestore and Storage security rules for production.
+    - Generate schema and default documents for Users, Groups, Videos collections.
+    - Generate all needed backend logic and AI features (e.g., Gemini-powered captions, video processing).
+3. Enable Vertex AI and integrate Gemini as the AI backend for text/video/image features, as described in the blueprint.
+4. In FlutterFlow (or your chosen frontend builder):
+    - Ensure all UI screens are built: onboarding, auth, home, video list/player, groups, favorites, capsule seal, profile/settings, notifications.
+    - Integrate Gemini/Vertex AI features (e.g., AI captions) into the video flow, using Remote Config for prompts and model versions.
+5. Use Gemini API to generate and auto-paste production-ready code for:
+    - Flutter/Dart logic (all platforms: iOS, Android, Web)
+    - In-app Remote Config fetch and AI calls
+    - Any missing business logic or UI code
+6. Build the app for iOS and Android:
+    - Run `flutter build apk` and `flutter build ios`
+    - Use Xcode and Android Studio to archive and export release builds.
+7. Distribute:
+    - For iOS: Prepare a TestFlight beta and provide the invite link.
+    - For Android: Upload to Google Play Internal Testing or generate a direct APK link for download.
+    - For Web: Deploy to Firebase Hosting and generate a shareable link.
+8. Test:
+    - Run basic automated and manual tests on all platforms.
+    - Report any issues to Gemini for code fixes, retry the build/test.
+9. Save all generated code, configs, rules, and documentation to "firebase_setup_notes.txt".
+10. Commit and push all changes to GitHub for backup.
+11. If any step fails, use Gemini chat or API to debug, then retry the failed step.
+12. Alert me when the builds are complete and provide links/instructions to download and install on my devices and share with friends.
+
