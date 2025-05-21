@@ -1,2 +1,24 @@
-Open Edge and go to openai.com. Open Spotify and play Kanye West. Open Notepad and create hello.txt.
+1. Open Spotify using the Start menu.
+2. In Spotify, click the search bar, type: Kanye West Can't Tell Me Nothing, and press Enter.
+3. When the song "Can't Tell Me Nothing" by Kanye West appears in the search results, double-click on the song title to start playing it.
+
+4. Open Notepad using the Start menu.
+5. Type this message into Notepad: Hello, World! This was written by Odie Stee.
+6. Save this file to the Desktop as hello.txt:
+    a. Press Alt+F to open the File menu.
+    b. Press A for "Save As".
+    c. In the Save dialog, press Alt+D to focus the address bar, type Desktop, and press Enter.
+    d. In the File name field, type hello.txt (just the filename, not a full path).
+    e. Press Enter or click Save.
+
+7. Open Microsoft Edge (or your default browser) using the Start menu.
+8. Go to google.com.
+9. In Google, search: Best vacation spots or romantic getaways in Charleston SC for a couple age 30, traveling for the week of July 11th.
+10. Review the first page of Google results.
+11. Open a new Notepad window.
+12. Summarize the top 3 to 5 recommendations for vacation spots or activities in Charleston, SC for a couple in their 30s for the week of July 11th. Type these summaries into Notepad.
+13. Save this file to the Desktop as charleston_vacation.txt, using the same steps:
+    a. Press Alt+F, then A for Save As.
+    b. Press Alt+D, type Desktop, and press Enter.
+    c. Type charleston_vacation.txt for the filename, then press Enter or click Save.
 
